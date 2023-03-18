@@ -23,20 +23,20 @@ DROP TABLE IF EXISTS `bookings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bookings` (
-  `BookingID` int NOT NULL,
-  `Time` datetime NOT NULL,
-  `TableNo` int NOT NULL,
-  `CustomerID` int NOT NULL,
-  `StaffID` int NOT NULL,
-  `MenuID` int NOT NULL,
+  `BookingID` int NOT NULL AUTO_INCREMENT,
+  `BookingDate` date DEFAULT NULL,
+  `TableNumber` int NOT NULL,
+  `CustomerID` int DEFAULT NULL,
+  `StaffID` int DEFAULT NULL,
+  `MenuID` int DEFAULT NULL,
   PRIMARY KEY (`BookingID`),
   KEY `customer_id_fk_idx` (`CustomerID`),
   KEY `staff_id_fk_idx` (`StaffID`),
   KEY `menu_id_fk_idx` (`MenuID`),
-  CONSTRAINT `customer_id_fk_bookings` FOREIGN KEY (`CustomerID`) REFERENCES `customers` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `customer_id_fk_bookings` FOREIGN KEY (`CustomerID`) REFERENCES `customers` (`CustomerID`),
   CONSTRAINT `menu_id_fk` FOREIGN KEY (`MenuID`) REFERENCES `menu` (`MenuID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `staff_id_fk` FOREIGN KEY (`StaffID`) REFERENCES `staff` (`StaffID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -45,6 +45,7 @@ CREATE TABLE `bookings` (
 
 LOCK TABLES `bookings` WRITE;
 /*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+INSERT INTO `bookings` VALUES (1,'2022-10-10',5,1,NULL,NULL),(2,'2022-11-12',3,3,NULL,NULL),(3,'2022-10-11',2,2,NULL,NULL),(6,'2022-10-15',4,NULL,NULL,NULL),(8,'2022-10-15',1,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -58,7 +59,7 @@ DROP TABLE IF EXISTS `customers`;
 CREATE TABLE `customers` (
   `CustomerID` int NOT NULL,
   `CustomerFullName` varchar(255) NOT NULL,
-  `ContactNumber` int NOT NULL,
+  `ContactNumber` varchar(10) NOT NULL,
   PRIMARY KEY (`CustomerID`),
   UNIQUE KEY `CustomerID_UNIQUE` (`CustomerID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -70,7 +71,7 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Vanessa McCarthy',113023343),(2,'Marcos Romero',112132321);
+INSERT INTO `customers` VALUES (1,'Vanessa McCarthy','113023343'),(2,'Marcos Romero','112132321'),(3,'Test Test','231567376');
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -233,6 +234,58 @@ UNLOCK TABLES;
 --
 -- Dumping routines for database 'littlelemondb'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `AddValidBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`database_user_1`@`%` PROCEDURE `AddValidBooking`(IN bookdate DATE, IN tableno INT)
+BEGIN
+	DECLARE results INT;
+START TRANSACTION;
+    	   -- inserting record into "results"
+	SELECT BookingID INTO results
+	FROM Bookings
+	WHERE EXISTS
+		(SELECT BookingDate,TableNumber FROM Bookings WHERE BookingDate = bookdate AND TableNumber = tableno)
+    ORDER BY BookingID     
+	LIMIT 1;
+    
+	    -- insert statement is here
+	INSERT INTO Bookings(BookingDate, TableNumber) VALUES(bookdate,tableno);
+
+	-- determining whether the table will be booked or not
+IF results IS NOT NULL THEN
+	SELECT CONCAT("Table ",TableNumber," is already booked! - booking cancelled.") AS "Status"
+    FROM Bookings
+    WHERE TableNumber = tableno
+    LIMIT 1;
+ELSE IF results IS NULL THEN
+	SELECT CONCAT("Table ",TableNumber," is available. - booking created!") AS "Status"
+    FROM Bookings
+    WHERE TableNumber = tableno
+    LIMIT 1;
+END IF;
+END IF;
+
+	-- commit or rollback
+	IF results IS NULL THEN
+	COMMIT;
+	ELSE IF results IS NOT NULL THEN
+		ROLLBACK;
+	END IF;
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `CancelOrder` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -246,6 +299,46 @@ DELIMITER ;;
 CREATE DEFINER=`database_user_1`@`%` PROCEDURE `CancelOrder`(number INT)
 DELETE FROM Orders
 WHERE OrderID = number ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CheckBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`database_user_1`@`%` PROCEDURE `CheckBooking`(IN bookdate DATE,
+IN tableno INT)
+BEGIN
+	DECLARE results INT;
+
+	SELECT BookingID INTO results
+	FROM Bookings
+	WHERE EXISTS
+		(SELECT BookingDate,TableNumber FROM Bookings WHERE BookingDate = bookdate AND TableNumber = tableno)
+    ORDER BY BookingID     
+	LIMIT 1; 
+
+IF results IS NOT NULL THEN
+	SELECT CONCAT("Table ",TableNumber," is already booked!") AS "Status"
+    FROM Bookings
+    WHERE TableNumber = tableno
+    LIMIT 1;
+ELSE IF results IS NULL THEN
+	SELECT CONCAT("Table ",TableNumber," is available.") AS "Status"
+    FROM Bookings
+    WHERE TableNumber = tableno
+    LIMIT 1;
+END IF;
+END IF;
+END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -297,4 +390,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-03-13 19:19:55
+-- Dump completed on 2023-03-18  0:01:49
