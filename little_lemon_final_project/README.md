@@ -1,3 +1,6 @@
+Below is a log of all the changes I have been doing to this project. 
+-------------------------------------------------------------------------------------------------------------------------------------
+
 setting up repository for project <br />
 
 added png file of the little lemon database entity relationship model<br />
