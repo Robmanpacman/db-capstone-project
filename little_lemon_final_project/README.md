@@ -18,3 +18,7 @@ added more procedures into the SQL database. also updated the png file to reflec
 
 UPDATED 3/20/23 <br />
 added in the tableau file containing the analysis that the course asked for. also created and added in python file created with jupyter. file connects with the mysql database and performs queries. 
+
+
+UPDATED 4/26/23 <br />
+added folders and organized the repo a little bit better. fixed SQL files and now the tableau file should work when downloaded with the excel sheet
