@@ -19,7 +19,7 @@ With the connection truly working, now I wanted to test some SQL scripts. I made
 
 When it comes to inputing information into a database, time and efficiency is key, with procedures I can help a business perform the task of inputing valuable information easier and faster. For example, when a customer asked to be booked in the Little Lemon store, the procedure "AddValidBooking" would check if a booking is valid, and depending on the result, it will display if the booking is created or if the booking is cancelled.
 
-Booking Created would be:
+Booking Created would be:<br>
 ![image](BookingCreated.png)
 
 This created the booking successfully because table 3 on that date was not booked yet. 
