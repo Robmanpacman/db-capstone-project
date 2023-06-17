@@ -21,6 +21,7 @@ When it comes to inputing information into a database, time and efficiency is ke
 
 Booking Created would be:
 ![image](BookingCreated.png)
+
 This created the booking successfully because table 3 on that date was not booked yet. 
 
 If I tried booking that table on the same date again, then this would result in:
